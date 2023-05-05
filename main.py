@@ -2,6 +2,10 @@ from bs4 import BeautifulSoup
 import requests
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 date = input("What date would you like to travel to? Type the date in the format YYYY-MM-DD: ")
 
@@ -24,23 +28,20 @@ song_names = [song.get_text(strip=True) for song in song_list]
 print(song_names)
 
 # Connect to spotify
-client_id = "f292f62dd5f44b1298e6754c80be271a"
-client_secret = "b7d2352e3ef943af9e8ca5b07f638f18"
 SPOTIPY_REDIRECT_URI = "http://example.com/"
 spotipy_scope = "playlist-modify-public"
-spotify_username = "116238293"
 
-token = SpotifyOAuth(client_id=client_id,
-                     client_secret=client_secret,
+token = SpotifyOAuth(client_id=os.getenv('CLIENT_ID'),
+                     client_secret=os.getenv('CLIENT_SECRET'),
                      redirect_uri=SPOTIPY_REDIRECT_URI,
                      state=None,
                      scope=spotipy_scope,
-                     username=spotify_username)
+                     username=os.getenv('SPOTIFY_USERNAME'))
 
 spotify_object = spotipy.Spotify(auth_manager=token)
 
 # create playlist
-spotify_object.user_playlist_create(user=spotify_username,
+spotify_object.user_playlist_create(user=os.getenv('SPOTIFY_USERNAME'),
                                     name=f"A blast from the past: {date}",
                                     public=True,
                                     description=f"A collection of the 100 most popular song on the date {date}")
@@ -65,7 +66,7 @@ for song in songs:
     except IndexError:
         print(f"Song not found: {song}")
 
-pre_playlist = spotify_object.user_playlists(user=spotify_username)
+pre_playlist = spotify_object.user_playlists(user=os.getenv('SPOTIFY_USERNAME'))
 
 playlist = pre_playlist["items"][0]["id"]
 
