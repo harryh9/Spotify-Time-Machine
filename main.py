@@ -14,19 +14,6 @@ response = requests.get(f"https://www.billboard.com/charts/hot-100/{date}/")
 response.raise_for_status()
 web_text = response.text
 
-# create
-soup = BeautifulSoup(web_text, "html.parser")
-print(soup)
-songs = soup.find_all("div", class_="o-chart-results-list-row-container")
-print(songs[0])
-song_list = []
-artists = []
-
-
-song_list = soup.select("li ul li h3")
-song_names = [song.get_text(strip=True) for song in song_list]
-print(song_names)
-
 # Connect to spotify
 SPOTIPY_REDIRECT_URI = "http://example.com/"
 spotipy_scope = "playlist-modify-public"
@@ -48,13 +35,9 @@ spotify_object.user_playlist_create(user=os.getenv('SPOTIFY_USERNAME'),
 
 # Make list of song names
 response = requests.get(f"https://www.billboard.com/charts/hot-100/{date}/")
-
 billboard_website = response.text
-
 soup = BeautifulSoup(billboard_website, "html.parser")
-
 all_songs = soup.find_all(name="div", class_="o-chart-results-list-row-container")
-
 songs = [song.find("h3").getText().strip() for song in all_songs]
 
 # find songs uri's
@@ -66,9 +49,11 @@ for song in songs:
     except IndexError:
         print(f"Song not found: {song}")
 
-pre_playlist = spotify_object.user_playlists(user=os.getenv('SPOTIFY_USERNAME'))
+# load playlists
+all_playlists = spotify_object.user_playlists(user=os.getenv('SPOTIFY_USERNAME'))
+# [0]["id"] used as the likelihood of the user creating another playlist in the time
+# it takes to run the program is very low
+playlist_id = all_playlists["items"][0]["id"]
 
-playlist = pre_playlist["items"][0]["id"]
-
-# add songs
-spotify_object.playlist_add_items(playlist_id=playlist, items=song_uris)
+# add songs to playlist
+spotify_object.playlist_add_items(playlist_id=playlist_id, items=song_uris)
